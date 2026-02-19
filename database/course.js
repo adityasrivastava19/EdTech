@@ -1,33 +1,48 @@
 const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema({
-    tittle: {
+
+    title: {              
         type: String,
         required: true
     },
+
     description: {
         type: String,
         required: true
     },
+
     price: {
         type: Number,
         required: true
     },
-    videourl: {
+
+    thumbnail: {           
         type: String,
-        required: true,
+        default: ""
     },
-    public_id: {
+
+    thumbnail_public_id: {
         type: String,
-        required: true
+        default: ""
     },
+
     instructor: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "user",
+        ref: "User",      
         required: true
-    }
-},
-{ timestamps: true }
-);
+    },
 
-module.exports = mongoose.model("course", courseSchema);
+    totalLectures: {        
+        type: Number,
+        default: 0
+    },
+
+    isPublished: {          
+        type: Boolean,
+        default: false
+    }
+
+}, { timestamps: true });
+
+module.exports = mongoose.model("Course", courseSchema);
