@@ -10,6 +10,22 @@ exports.createorder = async (req, res) => {
         if (!foundcourse) {
             return res.status(404).json({ message: "course not found" });
         }
+
+        // FREE course — enroll directly without Razorpay
+        if (Number(foundcourse.price) === 0) {
+            const existing = await order.findOne({ user: req.user.id, course: foundcourse._id });
+            if (existing) {
+                return res.status(200).json({ free: true, message: "already enrolled" });
+            }
+            await order.create({
+                user: req.user.id,
+                course: foundcourse._id,
+                payment: "free"
+            });
+            return res.status(200).json({ free: true, message: "enrolled for free" });
+        }
+
+        // PAID course — create Razorpay order
         const orders = await instance.orders.create({
             amount: foundcourse.price * 100,
             currency: "INR",
@@ -21,7 +37,7 @@ exports.createorder = async (req, res) => {
     }
 };
 
-// verifying the order
+// verifying the order (paid courses)
 exports.verifyorder = async (req, res) => {
     try {
         const { rozarpay_order_id, rozarpay_payment_id, rozarpay_signature, courseid } = req.body;
