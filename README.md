@@ -1,299 +1,238 @@
-# EdTech Platform for SyntaxSchool
+# 📚 Course Platform API
 
-> **Founded by Aditya**
-
-A comprehensive Node.js backend application for managing online courses with integrated payment processing, video hosting, and role-based access control. Built as the foundation for SyntaxSchool's EdTech platform.
-
-## 📋 Overview
-
-This backend system provides a foundation for an online course platform with support for:
-- **User Management** - Student, Instructor, and SuperAdmin roles
-- **Course Management** - Course creation, video uploads, and management
-- **Payment Integration** - Razorpay payment gateway support
-- **Media Storage** - Cloudinary integration for video hosting
-- **Order Management** - Track course purchases and enrollments
+A full-featured **course selling platform** backend built with **Node.js**, **Express**, and **MongoDB**. Instructors can create courses, upload video lectures via **Cloudinary**, and students can browse, purchase (via **Razorpay**), and watch courses with time-limited signed video URLs.
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-### User System
-- **Multi-role Authentication**: Students, Instructors, and SuperAdmins
-- **Instructor Applications**: Workflow for users to become instructors (pending/approved/rejected)
-- **Secure Password Storage**: Using bcrypt for password hashing
-
-### Course Management
-- Course creation with title, description, and pricing
-- Video upload and management via Cloudinary
-- Instructor assignment for courses
-- Timestamps for course tracking
-
-### Payment Processing
-- Razorpay integration for secure payments
-- Order tracking linked to users and courses
-- Payment verification system
+- **JWT Authentication** — Signup, login, and token-based session management
+- **Role-Based Access** — Three roles: `student`, `instructor`, `superadmin`
+- **Instructor Dashboard** — Create / update / delete courses with thumbnail uploads
+- **Lecture Management** — Upload video lectures (up to 500 MB) to Cloudinary
+- **Course Publishing** — Toggle publish/unpublish to control visibility
+- **Razorpay Payments** — Create and verify payment orders; free course enrollment supported
+- **Signed Video URLs** — Cloudinary signed URLs with 1-hour expiry for secure streaming
+- **Preview Lectures** — Mark lectures as free previews for unauthenticated browsing
+- **Input Validation** — Request validation with **Zod**
+- **CORS** — Pre-configured for frontend at `localhost:5173`
 
 ---
 
-## 🛠️ Tech Stack
-
-| Technology | Purpose |
-|------------|---------|
-| **Node.js** | Runtime environment |
-| **Express.js** | Web framework |
-| **MongoDB** | Database (via Mongoose) |
-| **Cloudinary** | Video/media storage |
-| **Razorpay** | Payment gateway |
-| **JWT** | Authentication tokens |
-| **Bcrypt** | Password hashing |
-| **Zod** | Schema validation |
-| **Multer** | File upload handling |
-
----
-
-## 📁 Project Structure
+## 🗂️ Project Structure
 
 ```
 course/
 ├── config/
-│   ├── db.js              # MongoDB connection
-│   ├── couldinary.js      # Cloudinary configuration
-│   └── rozarpay.js        # Razorpay configuration
+│   ├── couldinary.js      # Cloudinary SDK configuration
+│   ├── db.js              # MongoDB connection (Mongoose)
+│   └── rozarpay.js        # Razorpay SDK instance
+├── controllers/
+│   ├── instructor/
+│   │   └── instructor.js  # Course & lecture CRUD for instructors
+│   └── user/
+│       ├── auth.js        # Signup, login, request-instructor
+│       ├── coursecon.js    # Browse courses, watch lectures
+│       └── purchase.js    # Create & verify Razorpay orders
 ├── database/
-│   ├── user.js            # User schema & model
-│   ├── course.js          # Course schema & model
-│   └── order.js           # Order schema & model
+│   ├── course.js          # Course model
+│   ├── lecture.js         # Lecture model
+│   ├── order.js           # Order / purchase model
+│   └── user.js            # User model
+├── middleware/
+│   └── auth.js            # isAuth, isInstructor, isAdmin guards
 ├── routes/
-│   └── authroute.js       # Authentication routes (skeleton)
+│   ├── authroute.js       # /api/auth routes
+│   ├── userroute.js       # /api/user routes
+│   └── instructorroute.js # /api/instructor routes
 ├── .env                   # Environment variables
-├── package.json           # Dependencies
-└── package-lock.json      # Dependency lock file
+├── index.js               # Entry point
+└── package.json
 ```
 
 ---
 
-## 📦 Installation
+## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js** (v14 or higher)
-- **MongoDB** (local or cloud instance)
-- **Cloudinary Account** (for video hosting)
-- **Razorpay Account** (for payment processing)
 
-### Setup Steps
+- **Node.js** v18+
+- **MongoDB** (Atlas or local)
+- **Cloudinary** account
+- **Razorpay** account (test or live keys)
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd course
-   ```
+### 1. Clone & Install
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Configure environment variables**
-   
-   Create a `.env` file in the root directory with the following variables:
-   ```env
-   # Database
-   MONGO_URL=your_mongodb_connection_string
-   
-   # Cloudinary
-   CLOUD_NAME=your_cloudinary_cloud_name
-   API_KEY=your_cloudinary_api_key
-   API_SECRET=your_cloudinary_api_secret
-   
-   # Razorpay
-   KEY_ID=your_razorpay_key_id
-   KEY_SECRET=your_razorpay_key_secret
-   
-   # JWT (add if needed)
-   JWT_SECRET=your_jwt_secret_key
-   ```
-
-4. **Start the server**
-   ```bash
-   npm start
-   ```
-   *Note: A main server file (e.g., `index.js` or `server.js`) needs to be created*
-
----
-
-## 📊 Database Schemas
-
-### User Schema
-```javascript
-{
-  name: String (required),
-  email: String (required, unique),
-  password: String (required, hashed),
-  role: String (enum: ['student', 'instructor', 'superadim'], default: 'student'),
-  instructor: String (enum: ['none', 'pending', 'approved', 'rejected'], default: 'none'),
-  timestamps: true
-}
+```bash
+git clone <your-repo-url>
+cd course
+npm install
 ```
 
-### Course Schema
-```javascript
-{
-  tittle: String (required),
-  description: String (required),
-  price: Number (required),
-  videourl: String (required),
-  public_id: String (required),
-  instructor: ObjectId (ref: 'user', required),
-  timestamps: true
-}
+### 2. Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+PORT=5000
+
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+
+CLOUD_NAME=your_cloudinary_cloud_name
+CLOUD_API_KEY=your_cloudinary_api_key
+CLOUD_API_SECRET=your_cloudinary_api_secret
 ```
 
-### Order Schema
-```javascript
-{
-  user: ObjectId (ref: 'user', required),
-  course: ObjectId (ref: 'course', required),
-  payment: String (required),
-  timestamps: true
-}
+### 3. Run the Server
+
+```bash
+# Development (auto-reload with nodemon)
+npm run dev
+
+# Production
+npm start
 ```
 
----
-
-## 🔧 Configuration Files
-
-### Database Configuration (`config/db.js`)
-Handles MongoDB connection using Mongoose with async/await pattern.
-
-### Cloudinary Configuration (`config/couldinary.js`)
-Configures Cloudinary SDK for video upload and management.
-
-### Razorpay Configuration (`config/rozarpay.js`)
-Initializes Razorpay instance with API credentials.
+The API will be available at `http://localhost:5000`.
 
 ---
 
-## ⚠️ Known Issues & TODO
+## 📡 API Reference
 
-> [!WARNING]
-> **Critical Issues Found**
+### Authentication — `/api/auth`
 
-1. **Missing Server Entry Point** - No `index.js` or `server.js` file to start the application
-2. **Incomplete Routing** - `authroute.js` is a skeleton with no routes defined
-3. **Missing Exports** - `order.js` doesn't export the model
+| Method | Endpoint              | Auth | Description                        |
+|--------|-----------------------|------|------------------------------------|
+| POST   | `/signup`             | ❌   | Register a new student account     |
+| POST   | `/login`              | ❌   | Login and receive a JWT token      |
+| POST   | `/request-instructor` | ✅   | Request instructor role upgrade    |
 
-> [!CAUTION]
-> **Code Errors**
+### User / Student — `/api/user`
 
-1. **Typo in Variable Name** - `couldinary.js` should be `cloudinary.js` (file name typo)
-2. **Typo in Role** - User schema has `"superadim"` instead of `"superadmin"`
-3. **Wrong Method** - `course.js` uses `mongoose.courseSchema` instead of `mongoose.Schema`
-4. **Missing Quote** - `course.js` line 3: `require(mongoose)` should be `require('mongoose')`
-5. **Wrong Property** - `course.js` line 26: `mongoose.Types.Schema.ObjectId` should be `mongoose.Schema.Types.ObjectId`
-6. **Unused Imports** - `zod/mini` imported but not used in `course.js` and `order.js`
+| Method | Endpoint                    | Auth | Description                              |
+|--------|-----------------------------|------|------------------------------------------|
+| GET    | `/courses`                  | ❌   | List all courses                         |
+| GET    | `/courses/:id`              | ❌   | Get single course details                |
+| GET    | `/courses/:id/watch`        | ✅   | Watch a lecture (signed URL, 1hr expiry) |
+| POST   | `/purchase/create-order`    | ✅   | Create a Razorpay order / free enroll    |
+| POST   | `/purchase/verify-order`    | ✅   | Verify Razorpay payment signature        |
 
-> [!IMPORTANT]
-> **Missing Functionality**
-- No authentication middleware
-- No API route handlers
-- No error handling
-- No input validation (Zod is installed but not used)
-- No JWT token generation/verification
-- No file upload routes (Multer installed but not configured)
+### Instructor — `/api/instructor`
 
----
+> All routes require **login + instructor role**.
 
-## 🎯 Next Steps (Recommendations)
-
-### Phase 1: Fix Critical Issues ✅
-- [ ] Create `index.js` or `server.js` as main entry point
-- [ ] Fix typos in code (schema, variable names, require statements)
-- [ ] Export Order model properly
-- [ ] Set up Express server with CORS and middleware
-
-### Phase 2: Implement Core Features
-- [ ] Create authentication routes (signup, login, logout)
-- [ ] Implement JWT middleware for protected routes
-- [ ] Add course CRUD operations
-- [ ] Implement file upload with Multer + Cloudinary
-- [ ] Create Razorpay payment routes
-- [ ] Add Zod validation schemas
-
-### Phase 3: Enhancement
-- [ ] Add error handling middleware
-- [ ] Implement logging
-- [ ] Add rate limiting
-- [ ] Write API documentation
-- [ ] Add unit tests
-- [ ] Set up development and production environments
+| Method | Endpoint                          | Description                     |
+|--------|-----------------------------------|---------------------------------|
+| GET    | `/courses`                        | List instructor's own courses   |
+| POST   | `/courses`                        | Create a new course (+ thumbnail) |
+| PUT    | `/courses/:id`                    | Update course details           |
+| DELETE | `/courses/:id`                    | Delete course & all its lectures |
+| PATCH  | `/courses/:id/publish`            | Toggle publish / unpublish      |
+| GET    | `/courses/:id/lectures`           | List lectures for a course      |
+| POST   | `/courses/:id/lectures`           | Add a lecture (video upload)    |
+| DELETE | `/courses/:id/lectures/:lectureId`| Delete a lecture                |
 
 ---
 
-## 🔐 Security Considerations
+## 🗄️ Database Models
 
-- Passwords are hashed using **bcrypt** before storage
-- Environment variables should **never** be committed to version control
-- JWT tokens should be used for stateless authentication
-- API routes should implement proper authorization checks
-- Input validation is critical for preventing injection attacks
+### User
+| Field        | Type     | Description                                  |
+|-------------|----------|----------------------------------------------|
+| `name`      | String   | Full name (required)                         |
+| `email`     | String   | Unique email (required)                      |
+| `password`  | String   | Bcrypt-hashed password                       |
+| `role`      | String   | `student` / `instructor` / `superadmin`      |
+| `instructor`| String   | Request status: `none` / `pending` / `approved` / `rejected` |
 
----
+### Course
+| Field               | Type     | Description                         |
+|--------------------|----------|-------------------------------------|
+| `title`            | String   | Course title (required)             |
+| `description`      | String   | Course description (required)       |
+| `price`            | Number   | Price in INR (0 = free)             |
+| `thumbnail`        | String   | Cloudinary image URL                |
+| `instructor`       | ObjectId | Reference to User                   |
+| `totalLectures`    | Number   | Auto-incremented lecture count      |
+| `isPublished`      | Boolean  | Visibility toggle                   |
 
-## 📝 API Endpoints (Planned)
+### Lecture
+| Field        | Type     | Description                          |
+|-------------|----------|--------------------------------------|
+| `title`     | String   | Lecture title (required)             |
+| `description`| String  | Optional description                 |
+| `videourl`  | String   | Cloudinary video URL                 |
+| `public_id` | String   | Cloudinary asset ID (for signed URLs)|
+| `order`     | Number   | Display order                        |
+| `isPreview` | Boolean  | Free preview flag                    |
+| `duration`  | Number   | Duration in seconds                  |
+| `course`    | ObjectId | Reference to Course                  |
 
-### Authentication
-- `POST /api/auth/signup` - Register new user
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-
-### Courses
-- `GET /api/courses` - Get all courses
-- `POST /api/courses` - Create new course (Instructor only)
-- `GET /api/courses/:id` - Get course details
-- `PUT /api/courses/:id` - Update course (Instructor only)
-- `DELETE /api/courses/:id` - Delete course (Instructor/Admin only)
-
-### Orders
-- `POST /api/orders/create` - Create payment order
-- `POST /api/orders/verify` - Verify payment
-- `GET /api/orders/user/:userId` - Get user's orders
-
-### Users
-- `GET /api/users/profile` - Get user profile
-- `PUT /api/users/profile` - Update profile
-- `POST /api/users/instructor-request` - Request instructor status
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Order
+| Field     | Type     | Description                          |
+|----------|----------|--------------------------------------|
+| `user`   | ObjectId | Reference to User                    |
+| `course` | ObjectId | Reference to Course                  |
+| `payment`| String   | Razorpay payment ID or `"free"`      |
 
 ---
 
-## 📄 License
+## 🔐 Authentication & Authorization
 
-ISC License
-
----
-
-## 👥 Author
-
-**Aditya** - Founder & Developer - [SyntaxSchool](https://github.com/adityasrivastava19)
+1. **JWT Tokens** — Issued on login with 7-day expiry; sent as `Bearer <token>` in the `Authorization` header.
+2. **Middleware Guards:**
+   - `isAuth` — Verifies JWT and attaches `req.user`
+   - `isInstructor` — Requires `role === "instructor"`
+   - `isAdmin` — Requires `role === "superadmin"`
 
 ---
 
-## 🙏 Acknowledgments
+## 💳 Payment Flow
 
-- Express.js for the robust web framework
-- MongoDB for the flexible database
-- Cloudinary for media management
-- Razorpay for payment processing solutions
+```
+Student                     Server                    Razorpay
+  │                           │                          │
+  ├─ POST /create-order ─────►│                          │
+  │                           ├─ orders.create() ───────►│
+  │                           │◄─── orderId ─────────────┤
+  │◄── { orderId } ──────────┤                          │
+  │                           │                          │
+  │── (Razorpay checkout) ───────────────────────────────►│
+  │◄── payment_id, signature ────────────────────────────┤
+  │                           │                          │
+  ├─ POST /verify-order ─────►│                          │
+  │                           ├─ HMAC verify ────────────┤
+  │                           ├─ Create order record     │
+  │◄── { success } ──────────┤                          │
+```
+
+Free courses (price = 0) skip Razorpay and enroll directly.
 
 ---
 
-**Status**: 🚧 Under Development - This is a foundational setup requiring implementation of core features.
+## 📦 Dependencies
+
+| Package        | Purpose                                    |
+|---------------|--------------------------------------------|
+| `express`     | Web framework                              |
+| `mongoose`    | MongoDB ODM                                |
+| `bcrypt`      | Password hashing                           |
+| `jsonwebtoken`| JWT authentication                         |
+| `cloudinary`  | Media storage (images & videos)            |
+| `multer`      | Multipart form-data / file upload handling |
+| `razorpay`    | Payment gateway integration                |
+| `zod`         | Schema validation                          |
+| `cors`        | Cross-origin resource sharing              |
+| `dotenv`      | Environment variable management            |
+| `crypto`      | HMAC signature verification                |
+| `nodemon`     | Dev auto-restart (devDependency)           |
+
+---
+
+## 📝 License
+
+ISC
