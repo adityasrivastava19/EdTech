@@ -64,7 +64,7 @@ exports.createCourse = [
             let thumbnail = "";
             let thumbnail_public_id = "";
             if (req.file) {
-                const result = await uploadToCloudinary(req.file.buffer, 'course_thumbnails', 'image');
+                const result = await uploadToCloudinary(req.file.path, 'course_thumbnails', 'image');
                 thumbnail = result.secure_url;
                 thumbnail_public_id = result.public_id;
             }
